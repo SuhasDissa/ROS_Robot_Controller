@@ -1,6 +1,5 @@
 package top.suhasdissa.robotcontroller.components
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -24,7 +23,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 
@@ -92,7 +90,6 @@ fun ToggleView(view: Boolean, lightGrey: Color, touchEnabled: Boolean = true) {
             modifier = Modifier.fillMaxSize(), label = "CAMERA", lightGrey = lightGrey
         )
     } else {
-        val context = LocalContext.current
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -107,9 +104,7 @@ fun ToggleView(view: Boolean, lightGrey: Color, touchEnabled: Boolean = true) {
                 .shadow(8.dp, RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center
         ) {
-            ArenaCoordinateMapper(touchEnabled = touchEnabled, onCoordinateSelected = { x, y ->
-                Toast.makeText(context, "X: $x, Y: $y", Toast.LENGTH_SHORT).show()
-            })
+            ArenaCoordinateMapper(touchEnabled = touchEnabled)
         }
     }
 }

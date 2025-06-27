@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -27,19 +29,22 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import top.suhasdissa.robotcontroller.R
+import top.suhasdissa.robotcontroller.viewmodels.ArenaMapViewModel
 
 @Composable
 fun ArenaCoordinateMapper(
     modifier: Modifier = Modifier,
-    touchEnabled: Boolean,
-    onCoordinateSelected: (x: Float, y: Float) -> Unit = { _, _ -> }
+    touchEnabled: Boolean
 ) {
+    val arenaMapViewModel: ArenaMapViewModel = viewModel(factory = ArenaMapViewModel.Factory)
     val arenaWidthMeters = 15f
     val arenaHeightMeters = 8f
 
     var imageSize by remember { mutableStateOf(IntSize.Zero) }
-    var selectedPoint by remember { mutableStateOf<Pair<Float, Float>?>(null) }
+    val selectedPoint by arenaMapViewModel.selectedPoint.observeAsState()
+    val robotPosition by arenaMapViewModel.robotPosition.observeAsState()
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -69,8 +74,10 @@ fun ArenaCoordinateMapper(
                                         val realWorldY =
                                             (offset.y / imageSize.height) * arenaHeightMeters
 
-                                        selectedPoint = Pair(realWorldX, realWorldY)
-                                        onCoordinateSelected(realWorldX, realWorldY)
+                                        arenaMapViewModel.onCoordinateSelected(
+                                            realWorldX,
+                                            realWorldY
+                                        )
                                     }
                                 }
                             }
@@ -80,6 +87,8 @@ fun ArenaCoordinateMapper(
                     ),
                 contentScale = ContentScale.Fit
             )
+
+
 
             selectedPoint?.let { (x, y) ->
                 val pixelX = (x / arenaWidthMeters) * imageSize.width
@@ -98,6 +107,42 @@ fun ArenaCoordinateMapper(
                         )
                         .border(2.dp, Color.White, CircleShape)
                 )
+            }
+
+            if (touchEnabled) {
+                selectedPoint?.let { (x, y) ->
+                    val pixelX = (x / arenaWidthMeters) * imageSize.width
+                    val pixelY = (y / arenaHeightMeters) * imageSize.height
+
+                    Box(
+                        modifier = Modifier
+                            .offset(
+                                x = with(LocalDensity.current) { pixelX.toDp() - 8.dp },
+                                y = with(LocalDensity.current) { pixelY.toDp() - 8.dp }
+                            )
+                            .size(16.dp)
+                            .background(
+                                Color.Red,
+                                CircleShape
+                            )
+                            .border(2.dp, Color.White, CircleShape)
+                    )
+                }
+
+                robotPosition?.let { (x, y, r) ->
+                    val pixelX = (x / arenaWidthMeters) * imageSize.width
+                    val pixelY = (y / arenaHeightMeters) * imageSize.height
+
+                    Image(
+                        painterResource(R.drawable.robot_top), "Passer Robot",
+                        modifier = Modifier
+                            .offset(
+                                x = with(LocalDensity.current) { pixelX.toDp() - 8.dp },
+                                y = with(LocalDensity.current) { pixelY.toDp() - 8.dp }
+                            )
+                            .rotate(r)
+                            .size(50.dp))
+                }
             }
         }
     }

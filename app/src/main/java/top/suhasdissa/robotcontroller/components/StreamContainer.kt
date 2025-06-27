@@ -38,7 +38,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
-import top.suhasdissa.robotcontroller.StreamViewModel
+import top.suhasdissa.robotcontroller.viewmodels.StreamViewModel
 import top.suhasdissa.robotcontroller.data.StreamState
 
 @OptIn(UnstableApi::class)

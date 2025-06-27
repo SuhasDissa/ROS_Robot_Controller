@@ -1,4 +1,4 @@
-package top.suhasdissa.robotcontroller
+package top.suhasdissa.robotcontroller.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

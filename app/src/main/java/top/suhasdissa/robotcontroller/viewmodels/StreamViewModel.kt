@@ -1,4 +1,4 @@
-package top.suhasdissa.robotcontroller
+package top.suhasdissa.robotcontroller.viewmodels
 
 import android.app.Application
 import android.content.Context
