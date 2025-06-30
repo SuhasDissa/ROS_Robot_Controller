@@ -5,13 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -27,8 +29,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import top.suhasdissa.robotcontroller.R
 import top.suhasdissa.robotcontroller.viewmodels.ArenaMapViewModel
@@ -46,15 +50,13 @@ fun ArenaCoordinateMapper(
     val selectedPoint by arenaMapViewModel.selectedPoint.observeAsState()
     val robotPosition by arenaMapViewModel.robotPosition.observeAsState()
 
-    Column(
+    Box(
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(arenaWidthMeters / arenaHeightMeters),
-            //contentAlignment = Alignment.Center
+                .aspectRatio(arenaWidthMeters / arenaHeightMeters)
         ) {
             Image(
                 painter = painterResource(R.drawable.robocon_arena),
@@ -132,18 +134,35 @@ fun ArenaCoordinateMapper(
                 robotPosition?.let { (x, y, r) ->
                     val pixelX = (x / arenaWidthMeters) * imageSize.width
                     val pixelY = (y / arenaHeightMeters) * imageSize.height
+                    // robot size is 0.8 meters
+                    val robotSizePx = (0.8f / arenaWidthMeters) * imageSize.width
+                    val robotSizeDp = with(LocalDensity.current) { robotSizePx.toDp() }
 
                     Image(
                         painterResource(R.drawable.robot_top), "Passer Robot",
                         modifier = Modifier
                             .offset(
-                                x = with(LocalDensity.current) { pixelX.toDp() - 8.dp },
-                                y = with(LocalDensity.current) { pixelY.toDp() - 8.dp }
+                                x = with(LocalDensity.current) { pixelX.toDp() - robotSizeDp / 2 },
+                                y = with(LocalDensity.current) { pixelY.toDp() - robotSizeDp / 2 }
                             )
                             .rotate(r)
-                            .size(50.dp))
+                            .size(robotSizeDp))
                 }
             }
         }
+        Text(
+            text = "ARENA",
+            modifier = Modifier
+                .padding(10.dp)
+                .align(Alignment.TopStart)
+                .background(
+                    Color.Black.copy(alpha = 0.7f), RoundedCornerShape(4.dp)
+                )
+                .border(1.dp, Color(0xFF555555), RoundedCornerShape(4.dp))
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }

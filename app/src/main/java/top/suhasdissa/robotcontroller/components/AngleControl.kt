@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import top.suhasdissa.robotcontroller.viewmodels.ControlsViewModel
 
 @Composable
 fun AngleControl(
@@ -30,8 +32,9 @@ fun AngleControl(
     lightGrey: Color,
     accentGreen: Color
 ) {
-    var sliderValue by remember { mutableFloatStateOf(0.45f) }
-    val angle = (sliderValue * 180).toInt()
+    val controlsViewModel: ControlsViewModel = viewModel(factory = ControlsViewModel.Factory)
+    var sliderValue by remember { mutableFloatStateOf(180f) }
+    val angle = sliderValue.toInt()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -39,8 +42,11 @@ fun AngleControl(
     ) {
         Slider(
             value = sliderValue,
-            onValueChange = { sliderValue = it },
-            valueRange = 0f..1f,
+            onValueChange = {
+                sliderValue = it
+                controlsViewModel.onAngleChange(it)
+            },
+            valueRange = 0f..360f,
             modifier = Modifier.width(500.dp),
             colors = SliderDefaults.colors(
                 thumbColor = Color(0xFF777777),

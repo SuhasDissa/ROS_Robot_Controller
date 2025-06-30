@@ -18,13 +18,10 @@ fun ButtonsAndSwitches(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             ActionButton(
-                text = "FIRE", accentRed = accentRed, lightGrey = lightGrey
+                text = "PASS", accentRed = accentRed, lightGrey = lightGrey
             )
             ActionButton(
-                text = "ARM", accentRed = accentRed, lightGrey = lightGrey
-            )
-            ActionButton(
-                text = "ZOOM", accentRed = accentRed, lightGrey = lightGrey
+                text = "SHOOT", accentRed = accentRed, lightGrey = lightGrey
             )
         }
 

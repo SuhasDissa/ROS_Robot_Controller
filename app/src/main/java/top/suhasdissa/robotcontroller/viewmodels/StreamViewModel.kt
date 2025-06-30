@@ -10,10 +10,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.exoplayer.rtsp.RtspMediaSource
+import androidx.media3.exoplayer.source.MediaSource
 import top.suhasdissa.robotcontroller.data.StreamState
 
 class StreamViewModel(application: Application) : AndroidViewModel(application) {
@@ -25,7 +24,7 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         initializePlayer(application.applicationContext)
-        startStream("https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8")
+        startStream("rtsp://192.168.8.184:5555")
     }
 
     private fun initializePlayer(context: Context) {
@@ -53,17 +52,13 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
 
                 override fun onPlayerError(error: PlaybackException) {
                     val errorMessage = when (error.errorCode) {
-                        PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW ->
-                            "Stream is too far behind live window"
+                        PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW -> "Stream is too far behind live window"
 
-                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED ->
-                            "Network connection failed"
+                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED -> "Network connection failed"
 
-                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
-                            "Connection timeout"
+                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> "Connection timeout"
 
-                        PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ->
-                            "Invalid stream format"
+                        PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED -> "Invalid stream format"
 
                         else -> error.message ?: "Unknown playback error"
                     }
@@ -85,12 +80,12 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
 
     @OptIn(UnstableApi::class)
     fun startStream(url: String) {
-//        val mediaSource: MediaSource =
-//            RtspMediaSource.Factory().createMediaSource(MediaItem.fromUri(url))
+        val mediaSource: MediaSource =
+            RtspMediaSource.Factory().createMediaSource(MediaItem.fromUri(url))
 
-        val dataSourceFactory: DataSource.Factory = DefaultHttpDataSource.Factory()
-        val mediaSource =
-            HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(url))
+//        val dataSourceFactory: DataSource.Factory = DefaultHttpDataSource.Factory()
+//        val mediaSource =
+//            HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(url))
 
         _exoPlayer?.apply {
             setMediaSource(mediaSource)

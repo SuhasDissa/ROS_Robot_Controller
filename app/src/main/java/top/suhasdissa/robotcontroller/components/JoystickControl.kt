@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import top.suhasdissa.robotcontroller.viewmodels.ControlsViewModel
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -28,6 +30,7 @@ import kotlin.math.sqrt
 fun JoystickControl(
     darkGrey: Color, lightGrey: Color
 ) {
+    val controlsViewModel: ControlsViewModel = viewModel(factory = ControlsViewModel.Factory)
     var joystickPosition by remember { mutableStateOf(Offset.Zero) }
     val density = LocalDensity.current
     val joystickRadius = with(density) { 60.dp.toPx() }
@@ -44,6 +47,7 @@ fun JoystickControl(
                     detectDragGestures(
                         onDragEnd = {
                             joystickPosition = Offset.Zero
+                            controlsViewModel.onJoystickMove(0f, 0f)
                         }) { _, dragAmount ->
                         val newPosition = joystickPosition + dragAmount
                         val distance =
@@ -57,6 +61,10 @@ fun JoystickControl(
                                 cos(angle) * maxDistance, sin(angle) * maxDistance
                             )
                         }
+                        controlsViewModel.onJoystickMove(
+                            joystickPosition.x / maxDistance,
+                            joystickPosition.y / maxDistance
+                        )
                     }
                 }) {
             drawCircle(

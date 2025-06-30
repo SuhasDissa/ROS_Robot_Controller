@@ -25,9 +25,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
@@ -38,8 +36,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
-import top.suhasdissa.robotcontroller.viewmodels.StreamViewModel
 import top.suhasdissa.robotcontroller.data.StreamState
+import top.suhasdissa.robotcontroller.viewmodels.StreamViewModel
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -47,6 +45,7 @@ fun StreamContainer(
     modifier: Modifier = Modifier,
     label: String,
     lightGrey: Color,
+    darkGrey: Color,
     viewModel: StreamViewModel = viewModel()
 ) {
     val streamState by viewModel.streamState.observeAsState(StreamState.Loading)
@@ -54,15 +53,8 @@ fun StreamContainer(
     Box(
         modifier = modifier
             .fillMaxHeight()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFF2A2A2A), Color(0xFF1F1F1F)),
-                    start = Offset(0f, 0f),
-                    end = Offset(100f, 100f)
-                ), shape = RoundedCornerShape(12.dp)
-            )
+            .background(darkGrey)
             .border(2.dp, lightGrey, RoundedCornerShape(12.dp))
-            .shadow(8.dp, RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp))
     ) {
         when (val state = streamState) {
@@ -73,7 +65,7 @@ fun StreamContainer(
                             // Get the ExoPlayer from ViewModel
                             player = viewModel.exoPlayer
                             useController = false
-                            setBackgroundColor(Color.Black.toArgb())
+                            setBackgroundColor(darkGrey.toArgb())
                         }
                     },
                     modifier = modifier.fillMaxSize()
