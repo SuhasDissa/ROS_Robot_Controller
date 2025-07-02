@@ -11,7 +11,6 @@ import top.suhasdissa.robotcontroller.data.AngleData
 import top.suhasdissa.robotcontroller.data.CoordinateData
 import kotlin.math.atan2
 import kotlin.math.cos
-import kotlin.math.pow
 import kotlin.math.sin
 
 data class RobotStatus(val isConnected: Boolean, val batteryLevel: Int, val currentTask: String)
@@ -27,7 +26,7 @@ interface RemoteController {
 class RemoteControllerImpl : RemoteController {
     override suspend fun publishCoordinates(data: CoordinateData) {
         val angle =
-            Math.toDegrees(atan2((data.y - currentY).toDouble(), (data.x - currentX).toDouble()))
+            Math.toDegrees(atan2((data.x - currentX).toDouble(), (data.y - currentY).toDouble()))
                 .toFloat()
         updateRobotPosition(data.x, data.y, (angle + 360) % 360)
     }
@@ -83,24 +82,33 @@ class RemoteControllerImpl : RemoteController {
         val steps = 10
         val delayMillis = 50L
 
-        val dx = (targetX - currentX) / steps
-        val dy = (targetY - currentY) / steps
-        val initialAngleDiff = targetAngle - currentAngle
+        val startX = currentX
+        val startY = currentY
+        val startAngle = currentAngle
 
-        val normalizedInitialAngleDiff = (initialAngleDiff + 540) % 360 - 180
+        val dx = targetX - startX
+        val dy = targetY - startY
+        var angleDiff = targetAngle - startAngle
+
+
+        if (angleDiff > 180) {
+            angleDiff -= 360
+        } else if (angleDiff < -180) {
+            angleDiff += 360
+        }
 
         for (i in 1..steps) {
-            currentX += dx
-            currentY += dy
-
             val progress = i.toFloat() / steps
             val easedProgress = 0.5f * (1 - cos(Math.PI * progress).toFloat())
-            val angleIncrement = normalizedInitialAngleDiff * (easedProgress - (if (i > 1) 0.5f * (1 - cos(Math.PI * (i - 1).toFloat() / steps).toFloat()) else 0f))
-            currentAngle = (currentAngle + angleIncrement + 360) % 360
+
+            currentX = startX + dx * easedProgress
+            currentY = startY + dy * easedProgress
+            currentAngle = (startAngle + angleDiff * easedProgress + 360) % 360
 
             _robotPosition.emit(CoordinateData(currentX, currentY, currentAngle))
             delay(delayMillis)
         }
+
         currentX = targetX
         currentY = targetY
         currentAngle = targetAngle

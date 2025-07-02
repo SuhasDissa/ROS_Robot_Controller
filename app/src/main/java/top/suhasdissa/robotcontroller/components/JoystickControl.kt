@@ -33,7 +33,7 @@ fun JoystickControl(
     val controlsViewModel: ControlsViewModel = viewModel(factory = ControlsViewModel.Factory)
     var joystickPosition by remember { mutableStateOf(Offset.Zero) }
     val density = LocalDensity.current
-    val joystickRadius = with(density) { 60.dp.toPx() }
+    val joystickRadius = with(density) { 100.dp.toPx() }
     val stickRadius = with(density) { 25.dp.toPx() }
     val maxDistance = joystickRadius - stickRadius
 
