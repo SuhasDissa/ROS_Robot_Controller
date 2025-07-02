@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,7 +40,7 @@ fun ControlsSection(
                     darkGrey = darkGrey, lightGrey = lightGrey
                 )
 
-                AngleControl(
+                RotaryAngleControl(
                     darkGrey = darkGrey, lightGrey = lightGrey, accentGreen = accentGreen
                 )
             }
@@ -54,7 +55,8 @@ fun ControlsSection(
     } else {
         Row(
             modifier = modifier
-                .border(2.dp, lightGrey, RoundedCornerShape(15.dp)),
+                .border(2.dp, lightGrey, RoundedCornerShape(15.dp))
+                .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -63,7 +65,7 @@ fun ControlsSection(
                 darkGrey = darkGrey, lightGrey = lightGrey
             )
 
-            AngleControl(
+            RotaryAngleControl(
                 darkGrey = darkGrey, lightGrey = lightGrey, accentGreen = accentGreen
             )
 
