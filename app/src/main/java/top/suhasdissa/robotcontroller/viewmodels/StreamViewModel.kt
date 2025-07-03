@@ -90,10 +90,6 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
         val mediaSource: MediaSource =
             RtspMediaSource.Factory().createMediaSource(MediaItem.fromUri(url))
 
-//        val dataSourceFactory: DataSource.Factory = DefaultHttpDataSource.Factory()
-//        val mediaSource =
-//            HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(url))
-
         _exoPlayer?.apply {
             setMediaSource(mediaSource)
             prepare()
@@ -106,10 +102,6 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     fun stopStream() {
         _exoPlayer?.stop()
         _streamState.value = StreamState.Offline
-    }
-
-    fun onStreamStateChange(state: StreamState) {
-        _streamState.value = state
     }
 
     override fun onCleared() {
