@@ -1,8 +1,6 @@
 package top.suhasdissa.robotcontroller.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Gamepad
 import androidx.compose.material.icons.filled.SmartToy
@@ -29,8 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -43,7 +38,7 @@ import top.suhasdissa.robotcontroller.data.Screen
 @Composable
 fun HomeScreen(navController: NavHostController) {
     val darkGrey = Color(0xFF1A1A1A)
-    val lightGrey = Color(0xFF444444)
+    Color(0xFF444444)
     val accentBlue = Color(0xFF4FC3F7)
     val accentGreen = Color(0xFF66BB6A)
     val accentOrange = Color(0xFFFF9800)

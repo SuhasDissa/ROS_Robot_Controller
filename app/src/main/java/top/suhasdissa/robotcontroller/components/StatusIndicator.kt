@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,7 +20,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun StatusIndicator(
-    label: String, isOnline: Boolean, accentGreen: Color, accentRed: Color
+    label: String, background: Color
 ) {
     Row(
         modifier = Modifier
@@ -37,10 +36,7 @@ fun StatusIndicator(
             modifier = Modifier
                 .size(8.dp)
                 .background(
-                    if (isOnline) accentGreen else accentRed, CircleShape
-                )
-                .shadow(
-                    6.dp, CircleShape, spotColor = if (isOnline) accentGreen else accentRed
+                    background, CircleShape
                 )
         )
         Text(

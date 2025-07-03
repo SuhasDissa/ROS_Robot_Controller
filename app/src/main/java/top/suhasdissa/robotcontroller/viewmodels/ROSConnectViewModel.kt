@@ -1,6 +1,5 @@
 package top.suhasdissa.robotcontroller.viewmodels
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -13,80 +12,69 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import top.suhasdissa.robotcontroller.RobotControllerApplication
 import top.suhasdissa.robotcontroller.data.ros.Message
-import top.suhasdissa.robotcontroller.data.ros.ROSMessage
 import top.suhasdissa.robotcontroller.data.ros.Topic
 import top.suhasdissa.robotcontroller.rosutil.ConnectionEvent
 import top.suhasdissa.robotcontroller.rosutil.ROSBridgeClient
 import top.suhasdissa.robotcontroller.rosutil.ROSBridgeManager
 
-sealed class CommunicationUiState() {
+sealed class ROSConnectUiState() {
     data class Connected(
         val statusMessage: String = "Connected",
         val lastSentMessage: String = ""
-    ) : CommunicationUiState()
+    ) : ROSConnectUiState()
 
     data class Disconnected(
         val statusMessage: String = "Not connected",
         val lastSentMessage: String = ""
-    ) : CommunicationUiState()
+    ) : ROSConnectUiState()
 
-    data class Loading(val statusMessage: String = "Loading...") : CommunicationUiState()
-    data class Error(val errorMessage: String) : CommunicationUiState()
+    data class Loading(val statusMessage: String = "Loading...") : ROSConnectUiState()
+    data class Error(val errorMessage: String) : ROSConnectUiState()
 }
 
-class CommunicationTestViewModel(private val rosBridgeManager: ROSBridgeManager) : ViewModel() {
+class ROSConnectViewModel(private val rosBridgeManager: ROSBridgeManager) : ViewModel() {
 
     val connectionStatus = rosBridgeManager.connectionStatus
-    val receivedMessages = rosBridgeManager.receivedMessages
     val connectionEvents = rosBridgeManager.connectionEvents
 
-    private val _uiState =
-        MutableStateFlow<CommunicationUiState>(CommunicationUiState.Disconnected())
-    val uiState: StateFlow<CommunicationUiState> = _uiState.asStateFlow()
-
-    val messageHistory = mutableStateListOf<ROSMessage>()
+    private val _uiState = MutableStateFlow<ROSConnectUiState>(ROSConnectUiState.Disconnected())
+    val uiState: StateFlow<ROSConnectUiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            receivedMessages.collect { message ->
-                messageHistory.add(message)
-            }
-        }
-
+        connect()
         viewModelScope.launch {
             connectionEvents.collect { event ->
                 when (event) {
                     is ConnectionEvent.Connected -> {
                         _uiState.value =
-                            CommunicationUiState.Connected(statusMessage = "Connected to ROS Bridge")
+                            ROSConnectUiState.Connected(statusMessage = "Connected to ROS Bridge")
                     }
 
                     is ConnectionEvent.Disconnected -> {
                         _uiState.value =
-                            CommunicationUiState.Disconnected(statusMessage = "Disconnected from ROS Bridge")
+                            ROSConnectUiState.Disconnected(statusMessage = "Disconnected from ROS Bridge")
                     }
 
                     is ConnectionEvent.Error -> {
-                        _uiState.value = CommunicationUiState.Error(errorMessage = event.message)
+                        _uiState.value = ROSConnectUiState.Error(errorMessage = event.message)
                     }
                 }
             }
         }
     }
 
-    fun connectToROS() {
-        _uiState.value = CommunicationUiState.Loading(statusMessage = "Connecting...")
+    fun connect() {
+        _uiState.value = ROSConnectUiState.Loading(statusMessage = "Connecting...")
         rosBridgeManager.connect(
             listOf(
-                Topic("/rpi", ROSBridgeClient.MessageType.STRING),
-                Topic("/rpi2", ROSBridgeClient.MessageType.STRING)
+                Topic("/robot_pose", ROSBridgeClient.MessageType.GEOMETRY_POSE2D)
             )
         )
     }
 
     fun publishMessage(message: String) {
         val currentState = _uiState.value
-        if (currentState is CommunicationUiState.Connected) {
+        if (currentState is ROSConnectUiState.Connected) {
             _uiState.value = currentState.copy(lastSentMessage = message)
         }
         rosBridgeManager.publishMessage(
@@ -96,12 +84,8 @@ class CommunicationTestViewModel(private val rosBridgeManager: ROSBridgeManager)
     }
 
     fun disconnect() {
-        _uiState.value = CommunicationUiState.Disconnected(statusMessage = "Disconnecting...")
+        _uiState.value = ROSConnectUiState.Disconnected(statusMessage = "Disconnecting...")
         rosBridgeManager.disconnect()
-    }
-
-    fun clearMessages() {
-        messageHistory.clear()
     }
 
     fun isConnected(): Boolean {
@@ -117,7 +101,7 @@ class CommunicationTestViewModel(private val rosBridgeManager: ROSBridgeManager)
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as RobotControllerApplication)
-                CommunicationTestViewModel(application.rosBridgeManager)
+                ROSConnectViewModel(application.rosBridgeManager)
             }
         }
     }

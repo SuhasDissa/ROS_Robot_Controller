@@ -7,13 +7,11 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.PageSize.Fill
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Slider
@@ -28,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -135,7 +132,7 @@ fun RotaryAngleControl(
                             onDragEnd = {
                                 isDragging = false
                             }
-                        ) { change , _->
+                        ) { change, _ ->
                             val center = Offset(size.width / 2f, size.height / 2f)
                             val touchPoint = change.position
 
@@ -214,7 +211,7 @@ fun RotaryAngleControl(
                     center = Offset(armEndX, armEndY)
                 )
             }
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = "${angle.toInt()}°",
                     modifier = Modifier

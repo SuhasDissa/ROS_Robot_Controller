@@ -50,6 +50,7 @@ class ROSBridgeClient(private var serverUri: String) {
     fun connect() {
         try {
             val uri = URI(serverUri)
+            webSocketClient?.closeBlocking()
             webSocketClient = object : WebSocketClient(uri) {
                 override fun onOpen(handshake: ServerHandshake?) {
                     listener?.onConnected()

@@ -2,7 +2,6 @@ package top.suhasdissa.robotcontroller.viewmodels
 
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.annotation.OptIn
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -14,8 +13,9 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.rtsp.RtspMediaSource
 import androidx.media3.exoplayer.source.MediaSource
-import top.suhasdissa.robotcontroller.RobotControllerApplication
 import top.suhasdissa.robotcontroller.data.StreamState
+import top.suhasdissa.robotcontroller.util.Pref
+import top.suhasdissa.robotcontroller.util.preferences
 
 class StreamViewModel(application: Application) : AndroidViewModel(application) {
     private val _streamState = MutableLiveData<StreamState>(StreamState.Loading)
@@ -23,16 +23,14 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
 
     private var _exoPlayer: ExoPlayer? = null
     val exoPlayer: ExoPlayer? get() = _exoPlayer
-    private val sharedPreferences: SharedPreferences =
-        application.getSharedPreferences(
-            RobotControllerApplication.SHARED_PREFS_NAME,
-            Context.MODE_PRIVATE
-        )
 
     init {
         initializePlayer(application.applicationContext)
         val rtspUrl =
-            sharedPreferences.getString("rtsp_url", RobotControllerApplication.DEFAULT_RTSP_URL)
+            application.applicationContext.preferences.getString(
+                Pref.RTSPURLKey,
+                Pref.DefaultRTSPURL
+            )
         startStream(rtspUrl!!)
     }
 

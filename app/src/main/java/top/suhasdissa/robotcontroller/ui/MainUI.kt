@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,10 +39,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import top.suhasdissa.robotcontroller.components.ControlsSection
+import top.suhasdissa.robotcontroller.components.StatusDialog
 import top.suhasdissa.robotcontroller.components.StatusIndicators
 import top.suhasdissa.robotcontroller.components.StreamSection
 import top.suhasdissa.robotcontroller.components.ToggleView
+import top.suhasdissa.robotcontroller.viewmodels.ROSConnectViewModel
 
 @Composable
 fun GameInterface(modifier: Modifier = Modifier) {
@@ -52,6 +57,12 @@ fun GameInterface(modifier: Modifier = Modifier) {
 
     var controlsVisible by remember { mutableStateOf(true) }
     var isPrimaryFirst by remember { mutableStateOf(true) }
+
+    val rosConnectViewModel: ROSConnectViewModel = viewModel(factory = ROSConnectViewModel.Factory)
+    val rosConnectUiState by rosConnectViewModel.uiState.collectAsState()
+    val connectionStatus by rosConnectViewModel.connectionStatus.collectAsState()
+
+    var showConnectDialog by remember { mutableStateOf(false) }
 
     Box(modifier.fillMaxSize()) {
         Column(
@@ -90,11 +101,22 @@ fun GameInterface(modifier: Modifier = Modifier) {
             }
         }
         StatusIndicators(
-            modifier = Modifier.align(Alignment.TopEnd),
-            accentGreen = accentGreen,
-            accentRed = accentRed
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .clickable(true) {
+                    showConnectDialog = true
+                },
+            rosConnectUiState
         )
     }
+
+    StatusDialog(
+        showDialog = showConnectDialog,
+        connectionStatus = connectionStatus,
+        uiState = rosConnectUiState,
+        onConnect = { rosConnectViewModel.connect() },
+        onDisconnect = { rosConnectViewModel.disconnect() }
+    ) { showConnectDialog = false }
 
     Box(
         modifier = Modifier

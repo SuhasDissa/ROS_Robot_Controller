@@ -1,6 +1,5 @@
 package top.suhasdissa.robotcontroller.ui
 
-import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -46,7 +45,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,7 +58,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -89,14 +86,6 @@ fun ROSBridgeScreen(
     val accentGreen = Color(0xFF66BB6A)
     val accentRed = Color(0xFFEF5350)
     val accentOrange = Color(0xFFFF9800)
-
-    val context = LocalContext.current
-
-    LaunchedEffect(viewModel) {
-        viewModel.errors.collect { error ->
-            Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
-        }
-    }
 
     var messageText by remember { mutableStateOf("") }
 

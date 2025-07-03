@@ -29,9 +29,6 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
     private val _receivedMessages = MutableSharedFlow<ROSMessage>()
     val receivedMessages: SharedFlow<ROSMessage> = _receivedMessages
 
-    private val _errors = MutableSharedFlow<String>()
-    val errors: SharedFlow<String> = _errors
-
     private val _connectionEvents = MutableStateFlow<ConnectionEvent>(ConnectionEvent.Disconnected)
     val connectionEvents: StateFlow<ConnectionEvent> = _connectionEvents
 
@@ -52,7 +49,7 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
         rosClient.setListener(this)
     }
 
-    fun connectToROS(topics: List<Topic> = listOf()) {
+    fun connect(topics: List<Topic> = listOf()) {
         this.topics = topics
         rosClient.connect()
     }
@@ -86,9 +83,9 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
         CoroutineScope(Dispatchers.IO).launch {
             _connectionStatus.value = true
             _connectionEvents.emit(ConnectionEvent.Connected)
-        }
-        for (topic in topics) {
-            subscribe(topic)
+            for (topic in topics) {
+                subscribe(topic)
+            }
         }
     }
 
@@ -116,7 +113,7 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
 
     override fun onError(error: String) {
         CoroutineScope(Dispatchers.IO).launch {
-            _errors.emit(error)
+            _connectionStatus.value = false
             _connectionEvents.emit(ConnectionEvent.Error(error))
         }
     }
