@@ -40,7 +40,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,15 +59,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import top.suhasdissa.robotcontroller.viewmodels.SettingsViewModel
+import top.suhasdissa.robotcontroller.util.Pref
+import top.suhasdissa.robotcontroller.util.rememberPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    navController: NavHostController,
-    viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
+    navController: NavHostController
 ) {
     val darkGrey = Color(0xFF1A1A1A)
     Color(0xFF444444)
@@ -76,10 +74,11 @@ fun SettingsScreen(
     val accentGreen = Color(0xFF66BB6A)
     val accentOrange = Color(0xFFFF9800)
 
-    val rtspUrl by viewModel.rtspUrl.collectAsState()
-    val websocketUrl by viewModel.websocketUrl.collectAsState()
-    val showRtspDialog by viewModel.showRtspDialog.collectAsState()
-    val showWebsocketDialog by viewModel.showWebsocketDialog.collectAsState()
+    var showWebsocketDialog by remember { mutableStateOf(false) }
+    var showRtspDialog by remember { mutableStateOf(false) }
+
+    var rtspUrl by rememberPreference(Pref.RTSPURLKey, Pref.DefaultRTSPURL)
+    var websocketUrl by rememberPreference(Pref.WebsocketURLKey, Pref.DefaultWebsocketURL)
 
     Box(
         modifier = Modifier
@@ -180,7 +179,7 @@ fun SettingsScreen(
                         value = rtspUrl,
                         icon = Icons.Default.Videocam,
                         accentColor = accentBlue,
-                        onClick = { viewModel.showRtspDialog() }
+                        onClick = { showRtspDialog = true }
                     )
                 }
 
@@ -191,7 +190,7 @@ fun SettingsScreen(
                         value = websocketUrl,
                         icon = Icons.Default.Wifi,
                         accentColor = accentGreen,
-                        onClick = { viewModel.showWebsocketDialog() }
+                        onClick = { showWebsocketDialog = true }
                     )
                 }
             }
@@ -206,10 +205,10 @@ fun SettingsScreen(
             placeholder = "rtsp://192.168.1.100:554/stream",
             accentColor = accentBlue,
             onSave = { url ->
-                viewModel.saveRtspUrl(url)
-                viewModel.hideRtspDialog()
+                rtspUrl = url
+                showRtspDialog = false
             },
-            onDismiss = { viewModel.hideRtspDialog() }
+            onDismiss = { showRtspDialog = false }
         )
     }
 
@@ -221,10 +220,10 @@ fun SettingsScreen(
             placeholder = "ws://192.168.1.100:8080",
             accentColor = accentGreen,
             onSave = { url ->
-                viewModel.saveWebsocketUrl(url)
-                viewModel.hideWebsocketDialog()
+                websocketUrl = url
+                showWebsocketDialog = false
             },
-            onDismiss = { viewModel.hideWebsocketDialog() }
+            onDismiss = { showWebsocketDialog = false }
         )
     }
 }

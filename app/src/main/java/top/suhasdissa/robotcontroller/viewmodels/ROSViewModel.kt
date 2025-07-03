@@ -13,8 +13,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import top.suhasdissa.robotcontroller.RobotControllerApplication
 import top.suhasdissa.robotcontroller.util.ConnectionEvent
+import top.suhasdissa.robotcontroller.util.Message
+import top.suhasdissa.robotcontroller.util.ROSBridgeClient
 import top.suhasdissa.robotcontroller.util.ROSBridgeManager
 import top.suhasdissa.robotcontroller.util.ROSMessage
+import top.suhasdissa.robotcontroller.util.Topic
 
 sealed class ROSUiState() {
     data class Connected(
@@ -74,7 +77,12 @@ class ROSViewModel(private val rosBridgeManager: ROSBridgeManager) : ViewModel()
 
     fun connectToROS() {
         _uiState.value = ROSUiState.Loading(statusMessage = "Connecting...")
-        rosBridgeManager.connectToROS()
+        rosBridgeManager.connectToROS(
+            listOf(
+                Topic("/rpi", ROSBridgeClient.MessageType.STRING),
+                Topic("/rpi2", ROSBridgeClient.MessageType.STRING)
+            )
+        )
     }
 
     fun publishMessage(message: String) {
@@ -82,7 +90,10 @@ class ROSViewModel(private val rosBridgeManager: ROSBridgeManager) : ViewModel()
         if (currentState is ROSUiState.Connected) {
             _uiState.value = currentState.copy(lastSentMessage = message)
         }
-        rosBridgeManager.publishMessage(message)
+        rosBridgeManager.publishMessage(
+            Topic("/android", ROSBridgeClient.MessageType.STRING),
+            Message.StringMessage(message)
+        )
     }
 
     fun disconnect() {

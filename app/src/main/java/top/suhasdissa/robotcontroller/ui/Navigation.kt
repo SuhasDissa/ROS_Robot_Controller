@@ -15,7 +15,7 @@ import top.suhasdissa.robotcontroller.data.Screen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun NavigationApp(modifier: Modifier = Modifier) {
+fun NavigationHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
     NavHost(

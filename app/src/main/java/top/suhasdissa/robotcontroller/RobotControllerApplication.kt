@@ -6,7 +6,7 @@ import top.suhasdissa.robotcontroller.util.RemoteController
 import top.suhasdissa.robotcontroller.util.RemoteControllerImpl
 
 class RobotControllerApplication : Application() {
-    val remoteController: RemoteController by lazy { RemoteControllerImpl() }
+    val remoteController: RemoteController by lazy { RemoteControllerImpl(rosBridgeManager) }
 
     val rosBridgeManager: ROSBridgeManager by lazy {
         val sharedPreferences = getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE)
@@ -16,8 +16,7 @@ class RobotControllerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Initialize ROS connection on app start
-        rosBridgeManager.connectToROS()
+       // rosBridgeManager.connectToROS()
     }
 
     override fun onTerminate() {

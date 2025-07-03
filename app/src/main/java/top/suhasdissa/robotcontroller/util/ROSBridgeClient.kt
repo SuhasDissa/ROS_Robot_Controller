@@ -6,27 +6,124 @@ import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 
-class ROSBridgeClient(private val serverUri: String) {
-    private var webSocketClient: WebSocketClient? = null
+data class SubscribeMessage(
+    val op: String = "subscribe",
+    val topic: String,
+    val type: String
+)
+
+data class UnsubscribeMessage(
+    val op: String = "unsubscribe",
+    val topic: String
+)
+
+data class PublishMessage(
+    val op: String = "publish",
+    val topic: String,
+    val type: String,
+    val msg: Message
+)
+
+data class CallServiceMessage(
+    val op: String = "call_service",
+    val service: String,
+    val type: String,
+    val args: Any? = null
+)
+
+data class ROSBridgeIncomingMessage(
+    val op: String,
+    val topic: String,
+    val msg: JsonObject,
+    val type: String,
+    val service: String,
+    val values: JsonObject,
+    val result: Boolean
+) {
+    inline fun <reified T : Message> deserializeMessage(jsonMsg: JsonObject?): T? {
+        if (jsonMsg == null) return null
+        return when (T::class) {
+            Message.StringMessage::class -> Gson().fromJson(
+                jsonMsg,
+                Message.StringMessage::class.java
+            ) as? T
+
+            Message.Int32Message::class -> Gson().fromJson(
+                jsonMsg,
+                Message.Int32Message::class.java
+            ) as? T
+
+            Message.BoolMessage::class -> Gson().fromJson(
+                jsonMsg,
+                Message.BoolMessage::class.java
+            ) as? T
+
+            Message.Float32Message::class -> Gson().fromJson(
+                jsonMsg,
+                Message.Float32Message::class.java
+            ) as? T
+
+            Message.Float64Message::class -> Gson().fromJson(
+                jsonMsg,
+                Message.Float64Message::class.java
+            ) as? T
+
+            Message.Pose2DMessage::class -> Gson().fromJson(
+                jsonMsg,
+                Message.Pose2DMessage::class.java
+            ) as? T
+
+            else -> null
+        }
+    }
+}
+
+sealed class Message {
+    data class StringMessage(val data: String) : Message()
+    data class Int32Message(val data: Int) : Message()
+    data class BoolMessage(val data: Boolean) : Message()
+    data class Float32Message(val data: Float) : Message()
+    data class Float64Message(val data: Double) : Message()
+    data class Pose2DMessage(
+        val x: Double = 0.0,
+        val y: Double = 0.0,
+        val theta: Double = 0.0
+    ) : Message()
+}
+
+
+class ROSBridgeClient(private var serverUri: String) {
+    private var webSocketClient: WebSocketClient? = null // NOSONAR
     private val gson = Gson()
 
     interface ROSBridgeListener {
         fun onConnected()
         fun onDisconnected()
-        fun onMessageReceived(topic: String, message: JsonObject)
+        fun onMessageReceived(message: ROSBridgeIncomingMessage)
+        fun onServiceResponse(service: String, result: Boolean, values: Any?)
         fun onError(error: String)
     }
 
     enum class MessageType(val value: String) {
         STRING("std_msgs/String"),
         INT32("std_msgs/Int32"),
-        BOOL("std_msgs/Bool")
+        BOOL("std_msgs/Bool"),
+        FLOAT32("std_msgs/Float32"),
+        FLOAT64("std_msgs/Float64"),
+        GEOMETRY_TWIST("geometry_msgs/Twist"),
+        SENSOR_IMAGE("sensor_msgs/Image"),
+        GEOMETRY_POSE2D("geometry_msgs/Pose2D"),
+        CUSTOM("custom")
     }
 
     private var listener: ROSBridgeListener? = null
 
     fun setListener(listener: ROSBridgeListener) {
         this.listener = listener
+    }
+
+    fun setServerUri(uri: String) {
+        this.serverUri = uri
     }
 
     fun connect() {
@@ -57,51 +154,92 @@ class ROSBridgeClient(private val serverUri: String) {
 
     private fun handleMessage(message: String) {
         try {
-            val jsonObject = gson.fromJson(message, JsonObject::class.java)
-            val topic = jsonObject.get("topic")?.asString
-            if (topic != null) {
-                listener?.onMessageReceived(topic, jsonObject)
+            val incomingMessage = gson.fromJson(message, ROSBridgeIncomingMessage::class.java)
+
+            when (incomingMessage.op) {
+                "publish" -> {
+                    listener?.onMessageReceived(incomingMessage)
+                }
+
+                "service_response" -> {
+                    incomingMessage.service.let { service ->
+                        listener?.onServiceResponse(
+                            service,
+                            incomingMessage.result,
+                            incomingMessage.values
+                        )
+                    }
+                }
+
+                else -> {
+                    listener?.onError("Unknown message type: ${incomingMessage.op}")
+                }
             }
         } catch (e: Exception) {
             listener?.onError("Message parsing error: ${e.message}")
         }
     }
 
-    fun subscribe(topic: String, messageType: MessageType) {
-        val subscribeMsg = JsonObject().apply {
-            addProperty("op", "subscribe")
-            addProperty("topic", topic)
-            addProperty("type", messageType.value)
-        }
-        sendMessage(subscribeMsg.toString())
+    fun subscribe(topic: Topic) {
+        val subscribeMsg = SubscribeMessage(
+            topic = topic.topic,
+            type = topic.messageType.value
+        )
+        sendMessage(gson.toJson(subscribeMsg))
     }
 
     fun unsubscribe(topic: String) {
-        val unsubscribeMsg = JsonObject().apply {
-            addProperty("op", "unsubscribe")
-            addProperty("topic", topic)
-        }
-        sendMessage(unsubscribeMsg.toString())
+        val unsubscribeMsg = UnsubscribeMessage(topic = topic)
+        sendMessage(gson.toJson(unsubscribeMsg))
     }
 
-    fun publish(topic: String, messageType: MessageType, message: JsonObject) {
-        val publishMsg = JsonObject().apply {
-            addProperty("op", "publish")
-            addProperty("topic", topic)
-            addProperty("type", messageType.value)
-            add("msg", message)
-        }
-        sendMessage(publishMsg.toString())
+    // Type-safe publish methods for standard message types
+    fun publishString(topic: Topic, data: String) {
+        val message = Message.StringMessage(data)
+        val publishMsg = PublishMessage(
+            topic = topic.topic,
+            type = MessageType.STRING.value,
+            msg = message
+        )
+        sendMessage(gson.toJson(publishMsg))
     }
 
-    fun callService(service: String, serviceType: String, args: JsonObject? = null) {
-        val serviceMsg = JsonObject().apply {
-            addProperty("op", "call_service")
-            addProperty("service", service)
-            addProperty("type", serviceType)
-            args?.let { add("args", it) }
-        }
-        sendMessage(serviceMsg.toString())
+    fun publishInt32(topic: String, data: Int) {
+        val message = Message.Int32Message(data)
+        val publishMsg = PublishMessage(
+            topic = topic,
+            type = MessageType.INT32.value,
+            msg = message
+        )
+        sendMessage(gson.toJson(publishMsg))
+    }
+
+    fun publishBool(topic: String, data: Boolean) {
+        val message = Message.BoolMessage(data)
+        val publishMsg = PublishMessage(
+            topic = topic,
+            type = MessageType.BOOL.value,
+            msg = message
+        )
+        sendMessage(gson.toJson(publishMsg))
+    }
+
+    fun publish(topic: Topic, message: Message) {
+        val publishMsg = PublishMessage(
+            topic = topic.topic,
+            type = topic.messageType.value,
+            msg = message
+        )
+        sendMessage(gson.toJson(publishMsg))
+    }
+
+    fun callService(service: String, serviceType: String, args: Any? = null) {
+        val serviceMsg = CallServiceMessage(
+            service = service,
+            type = serviceType,
+            args = args
+        )
+        sendMessage(gson.toJson(serviceMsg))
     }
 
     private fun sendMessage(message: String) {
@@ -116,3 +254,4 @@ class ROSBridgeClient(private val serverUri: String) {
         return webSocketClient?.isOpen == true
     }
 }
+

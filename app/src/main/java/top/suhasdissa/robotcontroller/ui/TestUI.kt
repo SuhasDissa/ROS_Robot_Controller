@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.PowerOff
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -747,7 +746,7 @@ fun EnhancedMessageItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = message.topic,
+                        text = message.message.topic,
                         style = MaterialTheme.typography.labelMedium,
                         color = accentOrange,
                         fontWeight = FontWeight.SemiBold
@@ -761,7 +760,7 @@ fun EnhancedMessageItem(
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = message.data,
+                    text = message.message.msg.asString,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White,
                     lineHeight = 18.sp

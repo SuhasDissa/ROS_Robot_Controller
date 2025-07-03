@@ -13,7 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import top.suhasdissa.robotcontroller.ui.NavigationApp
+import top.suhasdissa.robotcontroller.ui.NavigationHost
 import top.suhasdissa.robotcontroller.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
             MyApplicationTheme {
                 Scaffold { innerPadding ->
                     //GameInterface(Modifier.padding(innerPadding))
-                    NavigationApp(Modifier.padding(innerPadding))
+                    NavigationHost(Modifier.padding(innerPadding))
                 }
             }
         }

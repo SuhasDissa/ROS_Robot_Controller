@@ -1,5 +1,6 @@
 package top.suhasdissa.robotcontroller.util
 
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -23,12 +24,30 @@ interface RemoteController {
     val robotPosition: SharedFlow<CoordinateData?>
 }
 
-class RemoteControllerImpl : RemoteController {
+class RemoteControllerImpl(rosBridgeManager: ROSBridgeManager) : RemoteController {
+
+    val receivedMessages = rosBridgeManager.receivedMessages
+
+    init {
+        rosBridgeManager.connectToROS(listOf(
+            Topic("/robot_pose", ROSBridgeClient.MessageType.GEOMETRY_POSE2D)
+        ))
+
+        CoroutineScope(Dispatchers.IO).launch {
+            receivedMessages.collect { message ->
+                val msg = message.message.deserializeMessage<Message.Pose2DMessage>(message.message.msg)
+
+                if (msg != null) {
+                    val data = CoordinateData(msg.x.toFloat(), msg.y.toFloat(), Math.toDegrees(msg.theta).toFloat())
+                    publishCoordinates(data)
+                }
+            }
+        }
+    }
+
+
     override suspend fun publishCoordinates(data: CoordinateData) {
-        val angle =
-            Math.toDegrees(atan2((data.x - currentX).toDouble(), (data.y - currentY).toDouble()))
-                .toFloat()
-        updateRobotPosition(data.x, data.y, (angle + 360) % 360)
+        _robotPosition.emit(data)
     }
 
     override suspend fun publishAngles(data: AngleData) {
@@ -41,30 +60,30 @@ class RemoteControllerImpl : RemoteController {
     override suspend fun publishJoystickData(x: Float, y: Float) {
         joystickX = x
         joystickY = -y
-        CoroutineScope(Dispatchers.IO).launch {
-            while (isActive && (joystickX != 0f || joystickY != 0f)) {
-                updateRobotPositionWithJoystick()
-                delay(100)
-            }
-        }
+//        CoroutineScope(Dispatchers.IO).launch {
+//            while (isActive && (joystickX != 0f || joystickY != 0f)) {
+//                updateRobotPositionWithJoystick()
+//                delay(100)
+//            }
+//        }
     }
 
-    private suspend fun updateRobotPositionWithJoystick() {
-        if (joystickX != 0f || joystickY != 0f) {
-            val velocityFactor = 0.01f
-
-            currentAngle = (currentAngle + joystickX * 0.1f)
-            val angleRad = Math.toRadians(currentAngle.toDouble())
-            val deltaX = joystickY * velocityFactor * sin(angleRad).toFloat()
-            val deltaY = joystickY * velocityFactor * cos(angleRad).toFloat()
-
-
-            currentX = (currentX + deltaX).coerceIn(0f, X_LIMIT)
-            currentY = (currentY - deltaY).coerceIn(0f, Y_LIMIT)
-
-            _robotPosition.emit(CoordinateData(currentX, currentY, currentAngle))
-        }
-    }
+//    private suspend fun updateRobotPositionWithJoystick() {
+//        if (joystickX != 0f || joystickY != 0f) {
+//            val velocityFactor = 0.01f
+//
+//            currentAngle = (currentAngle + joystickX * 0.1f)
+//            val angleRad = Math.toRadians(currentAngle.toDouble())
+//            val deltaX = joystickY * velocityFactor * sin(angleRad).toFloat()
+//            val deltaY = joystickY * velocityFactor * cos(angleRad).toFloat()
+//
+//
+//            currentX = (currentX + deltaX).coerceIn(0f, X_LIMIT)
+//            currentY = (currentY - deltaY).coerceIn(0f, Y_LIMIT)
+//
+//            _robotPosition.emit(CoordinateData(currentX, currentY, currentAngle))
+//        }
+//    }
 
 
     override val robotStatusFlow: SharedFlow<RobotStatus> = MutableSharedFlow()
@@ -73,52 +92,52 @@ class RemoteControllerImpl : RemoteController {
     private var currentX = 5f
     private var currentY = 5f
     private var currentAngle = 0f
+//
+//    private suspend fun updateRobotPosition(newX: Float, newY: Float, newAngle: Float) {
+//        val targetX = newX.coerceIn(0f, X_LIMIT)
+//        val targetY = newY.coerceIn(0f, Y_LIMIT)
+//        val targetAngle = newAngle.coerceIn(0f, 360f)
+//
+//        val steps = 10
+//        val delayMillis = 50L
+//
+//        val startX = currentX
+//        val startY = currentY
+//        val startAngle = currentAngle
+//
+//        val dx = targetX - startX
+//        val dy = targetY - startY
+//        var angleDiff = targetAngle - startAngle
+//
+//
+//        if (angleDiff > 180) {
+//            angleDiff -= 360
+//        } else if (angleDiff < -180) {
+//            angleDiff += 360
+//        }
+//
+//        for (i in 1..steps) {
+//            val progress = i.toFloat() / steps
+//            val easedProgress = 0.5f * (1 - cos(Math.PI * progress).toFloat())
+//
+//            currentX = startX + dx * easedProgress
+//            currentY = startY + dy * easedProgress
+//            currentAngle = (startAngle + angleDiff * easedProgress + 360) % 360
+//
+//            _robotPosition.emit(CoordinateData(currentX, currentY, currentAngle))
+//            delay(delayMillis)
+//        }
+//
+//        currentX = targetX
+//        currentY = targetY
+//        currentAngle = targetAngle
+//    }
 
-    private suspend fun updateRobotPosition(newX: Float, newY: Float, newAngle: Float) {
-        val targetX = newX.coerceIn(0f, X_LIMIT)
-        val targetY = newY.coerceIn(0f, Y_LIMIT)
-        val targetAngle = newAngle.coerceIn(0f, 360f)
-
-        val steps = 10
-        val delayMillis = 50L
-
-        val startX = currentX
-        val startY = currentY
-        val startAngle = currentAngle
-
-        val dx = targetX - startX
-        val dy = targetY - startY
-        var angleDiff = targetAngle - startAngle
-
-
-        if (angleDiff > 180) {
-            angleDiff -= 360
-        } else if (angleDiff < -180) {
-            angleDiff += 360
-        }
-
-        for (i in 1..steps) {
-            val progress = i.toFloat() / steps
-            val easedProgress = 0.5f * (1 - cos(Math.PI * progress).toFloat())
-
-            currentX = startX + dx * easedProgress
-            currentY = startY + dy * easedProgress
-            currentAngle = (startAngle + angleDiff * easedProgress + 360) % 360
-
-            _robotPosition.emit(CoordinateData(currentX, currentY, currentAngle))
-            delay(delayMillis)
-        }
-
-        currentX = targetX
-        currentY = targetY
-        currentAngle = targetAngle
-    }
-
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            _robotPosition.emit(CoordinateData(currentX, currentY, currentAngle))
-        }
-    }
+//    init {
+//        CoroutineScope(Dispatchers.IO).launch {
+//            _robotPosition.emit(CoordinateData(currentX, currentY, currentAngle))
+//        }
+//    }
 
     companion object {
         private const val X_LIMIT = 15f

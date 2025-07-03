@@ -11,9 +11,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class ROSMessage(
-    val topic: String,
-    val data: String,
+    val message: ROSBridgeIncomingMessage,
     val timestamp: Long
+)
+
+data class Topic(
+    val topic: String,
+    val messageType: ROSBridgeClient.MessageType
 )
 
 sealed class ConnectionEvent {
@@ -29,7 +33,7 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
     val connectionStatus: StateFlow<Boolean> = _connectionStatus.asStateFlow()
 
     private val _receivedMessages = MutableSharedFlow<ROSMessage>()
-    val receivedMessages: SharedFlow<ROSMessage> = _receivedMessages
+    val receivedMessages: MutableSharedFlow<ROSMessage> = _receivedMessages
 
     private val _errors = MutableSharedFlow<String>()
     val errors: SharedFlow<String> = _errors
@@ -37,11 +41,13 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
     private val _connectionEvents = MutableStateFlow<ConnectionEvent>(ConnectionEvent.Disconnected)
     val connectionEvents: SharedFlow<ConnectionEvent> = _connectionEvents
 
+    var topics = listOf<Topic>()
+
     companion object {
         @Volatile
         private var INSTANCE: ROSBridgeManager? = null
 
-        fun getInstance(serverUri: String = "ws://192.168.8.161:9090"): ROSBridgeManager {
+        fun getInstance(serverUri: String): ROSBridgeManager {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: ROSBridgeManager(serverUri).also { INSTANCE = it }
             }
@@ -52,23 +58,21 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
         rosClient.setListener(this)
     }
 
-    fun connectToROS() {
+    fun connectToROS(topics: List<Topic> = listOf()) {
+        this.topics = topics
         rosClient.connect()
     }
 
-    private fun subscribeToTopic() {
-        rosClient.subscribe("/rpi", ROSBridgeClient.MessageType.STRING)
+    private fun subscribeToTopic(topic: Topic) {
+        rosClient.subscribe(topic)
     }
 
-    fun publishMessage(data: String = "Hello from Android!") {
-        val message = JsonObject().apply {
-            addProperty("data", data)
-        }
-        rosClient.publish("/android", ROSBridgeClient.MessageType.STRING, message)
+    fun publishMessage(topic: Topic, message: Message) {
+        rosClient.publish(topic, message)
     }
 
-    fun subscribe(topic: String, messageType: ROSBridgeClient.MessageType) {
-        rosClient.subscribe(topic, messageType)
+    fun subscribe(topic: Topic) {
+        rosClient.subscribe(topic)
     }
 
     fun unsubscribe(topic: String) {
@@ -93,7 +97,9 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
             _connectionStatus.value = true
             _connectionEvents.emit(ConnectionEvent.Connected)
         }
-        subscribeToTopic()
+        for (topic in topics) {
+            subscribeToTopic(topic)
+        }
     }
 
     override fun onDisconnected() {
@@ -103,13 +109,19 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
         }
     }
 
-    override fun onMessageReceived(topic: String, message: JsonObject) {
+    override fun onMessageReceived(message: ROSBridgeIncomingMessage) {
         CoroutineScope(Dispatchers.IO).launch {
-            val msg = message.getAsJsonObject("msg")
-            val data = msg?.get("data")?.asString ?: ""
             val timestamp = System.currentTimeMillis()
-            _receivedMessages.emit(ROSMessage(topic, data, timestamp))
+            _receivedMessages.emit(ROSMessage(message, timestamp))
         }
+    }
+
+    override fun onServiceResponse(
+        service: String,
+        result: Boolean,
+        values: Any?
+    ) {
+
     }
 
     override fun onError(error: String) {
