@@ -68,8 +68,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import top.suhasdissa.robotcontroller.data.ros.ROSMessage
-import top.suhasdissa.robotcontroller.viewmodels.CommunicationUiState
 import top.suhasdissa.robotcontroller.viewmodels.CommunicationTestViewModel
+import top.suhasdissa.robotcontroller.viewmodels.CommunicationUiState
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -194,22 +194,11 @@ fun ROSBridgeScreen(
                 accentGreen = accentGreen,
                 accentRed = accentRed,
                 darkGrey = darkGrey,
-                lightGrey = lightGrey
-            )
-
-            // Enhanced Control Buttons
-            EnhancedControlButtons(
-                connectionStatus = connectionStatus,
-                uiState = uiState,
+                lightGrey = lightGrey,
                 onConnect = { viewModel.connectToROS() },
-                onDisconnect = { viewModel.disconnect() },
-                accentGreen = accentGreen,
-                accentRed = accentRed,
-                darkGrey = darkGrey,
-                lightGrey = lightGrey
+                onDisconnect = { viewModel.disconnect() }
             )
 
-            // Enhanced Message Input
             EnhancedMessageInput(
                 messageText = messageText,
                 onMessageChange = { messageText = it },
@@ -225,7 +214,6 @@ fun ROSBridgeScreen(
                 lightGrey = lightGrey
             )
 
-            // Enhanced Message History
             EnhancedMessageHistory(
                 messageHistory = messageHistory,
                 onClearMessages = { viewModel.clearMessages() },
@@ -245,7 +233,9 @@ fun EnhancedStatusCard(
     accentGreen: Color,
     accentRed: Color,
     darkGrey: Color,
-    lightGrey: Color
+    lightGrey: Color,
+    onConnect: () -> Unit,
+    onDisconnect: () -> Unit
 ) {
     val statusColor = if (connectionStatus) accentGreen else accentRed
 
@@ -359,50 +349,35 @@ fun EnhancedStatusCard(
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                if (!connectionStatus) {
+                    EnhancedButton(
+                        text = "Connect",
+                        icon = Icons.Default.PowerSettingsNew,
+                        onClick = onConnect,
+                        enabled = uiState !is CommunicationUiState.Loading,
+                        accentColor = accentGreen,
+                        darkGrey = darkGrey,
+                        lightGrey = lightGrey,
+                        isLoading = uiState is CommunicationUiState.Loading,
+                        modifier = Modifier.width(150.dp) // Adjust width as needed
+                    )
+                } else {
+                    EnhancedButton(
+                        text = "Disconnect",
+                        icon = Icons.Default.PowerOff,
+                        onClick = onDisconnect,
+                        enabled = uiState !is CommunicationUiState.Loading,
+                        accentColor = accentRed,
+                        darkGrey = darkGrey,
+                        lightGrey = lightGrey,
+                        modifier = Modifier.width(150.dp) // Adjust width as needed
+                    )
+                }
             }
         }
-    }
-}
-
-@Composable
-fun EnhancedControlButtons(
-    connectionStatus: Boolean,
-    uiState: CommunicationUiState,
-    onConnect: () -> Unit,
-    onDisconnect: () -> Unit,
-    accentGreen: Color,
-    accentRed: Color,
-    darkGrey: Color,
-    lightGrey: Color
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Connect Button
-        EnhancedButton(
-            text = "Connect",
-            icon = Icons.Default.PowerSettingsNew,
-            onClick = onConnect,
-            enabled = !connectionStatus && uiState !is CommunicationUiState.Loading,
-            accentColor = accentGreen,
-            darkGrey = darkGrey,
-            lightGrey = lightGrey,
-            isLoading = uiState is CommunicationUiState.Loading,
-            modifier = Modifier.weight(1f)
-        )
-
-        // Disconnect Button
-        EnhancedButton(
-            text = "Disconnect",
-            icon = Icons.Default.PowerOff,
-            onClick = onDisconnect,
-            enabled = connectionStatus && uiState !is CommunicationUiState.Loading,
-            accentColor = accentRed,
-            darkGrey = darkGrey,
-            lightGrey = lightGrey,
-            modifier = Modifier.weight(1f)
-        )
     }
 }
 

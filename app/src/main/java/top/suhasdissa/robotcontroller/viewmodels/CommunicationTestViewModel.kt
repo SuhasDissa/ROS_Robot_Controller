@@ -109,6 +109,11 @@ class CommunicationTestViewModel(private val rosBridgeManager: ROSBridgeManager)
         return rosBridgeManager.isConnected()
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        rosBridgeManager.disconnect()
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

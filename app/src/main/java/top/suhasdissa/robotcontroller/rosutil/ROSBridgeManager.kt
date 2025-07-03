@@ -57,10 +57,6 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
         rosClient.connect()
     }
 
-    private fun subscribeToTopic(topic: Topic) {
-        rosClient.subscribe(topic)
-    }
-
     fun publishMessage(topic: Topic, message: Message) {
         rosClient.publish(topic, message)
     }
@@ -92,7 +88,7 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
             _connectionEvents.emit(ConnectionEvent.Connected)
         }
         for (topic in topics) {
-            subscribeToTopic(topic)
+            subscribe(topic)
         }
     }
 
