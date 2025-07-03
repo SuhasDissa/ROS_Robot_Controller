@@ -67,9 +67,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import top.suhasdissa.robotcontroller.util.ROSMessage
-import top.suhasdissa.robotcontroller.viewmodels.ROSUiState
-import top.suhasdissa.robotcontroller.viewmodels.ROSViewModel
+import top.suhasdissa.robotcontroller.data.ros.ROSMessage
+import top.suhasdissa.robotcontroller.viewmodels.CommunicationUiState
+import top.suhasdissa.robotcontroller.viewmodels.CommunicationTestViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -77,7 +77,7 @@ import java.util.Locale
 fun ROSBridgeScreen(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    viewModel: ROSViewModel = viewModel(factory = ROSViewModel.Factory)
+    viewModel: CommunicationTestViewModel = viewModel(factory = CommunicationTestViewModel.Factory)
 ) {
     val connectionStatus: Boolean by viewModel.connectionStatus.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
@@ -241,7 +241,7 @@ fun ROSBridgeScreen(
 @Composable
 fun EnhancedStatusCard(
     connectionStatus: Boolean,
-    uiState: ROSUiState,
+    uiState: CommunicationUiState,
     accentGreen: Color,
     accentRed: Color,
     darkGrey: Color,
@@ -326,7 +326,7 @@ fun EnhancedStatusCard(
                     )
 
                     when (val state = uiState) {
-                        is ROSUiState.Connected -> {
+                        is CommunicationUiState.Connected -> {
                             Text(
                                 text = state.statusMessage,
                                 style = MaterialTheme.typography.bodySmall,
@@ -334,7 +334,7 @@ fun EnhancedStatusCard(
                             )
                         }
 
-                        is ROSUiState.Disconnected -> {
+                        is CommunicationUiState.Disconnected -> {
                             Text(
                                 text = state.statusMessage,
                                 style = MaterialTheme.typography.bodySmall,
@@ -342,7 +342,7 @@ fun EnhancedStatusCard(
                             )
                         }
 
-                        is ROSUiState.Error -> {
+                        is CommunicationUiState.Error -> {
                             Text(
                                 text = state.errorMessage,
                                 style = MaterialTheme.typography.bodySmall,
@@ -350,7 +350,7 @@ fun EnhancedStatusCard(
                             )
                         }
 
-                        is ROSUiState.Loading -> {
+                        is CommunicationUiState.Loading -> {
                             Text(
                                 text = state.statusMessage,
                                 style = MaterialTheme.typography.bodySmall,
@@ -367,7 +367,7 @@ fun EnhancedStatusCard(
 @Composable
 fun EnhancedControlButtons(
     connectionStatus: Boolean,
-    uiState: ROSUiState,
+    uiState: CommunicationUiState,
     onConnect: () -> Unit,
     onDisconnect: () -> Unit,
     accentGreen: Color,
@@ -384,11 +384,11 @@ fun EnhancedControlButtons(
             text = "Connect",
             icon = Icons.Default.PowerSettingsNew,
             onClick = onConnect,
-            enabled = !connectionStatus && uiState !is ROSUiState.Loading,
+            enabled = !connectionStatus && uiState !is CommunicationUiState.Loading,
             accentColor = accentGreen,
             darkGrey = darkGrey,
             lightGrey = lightGrey,
-            isLoading = uiState is ROSUiState.Loading,
+            isLoading = uiState is CommunicationUiState.Loading,
             modifier = Modifier.weight(1f)
         )
 
@@ -397,7 +397,7 @@ fun EnhancedControlButtons(
             text = "Disconnect",
             icon = Icons.Default.PowerOff,
             onClick = onDisconnect,
-            enabled = connectionStatus && uiState !is ROSUiState.Loading,
+            enabled = connectionStatus && uiState !is CommunicationUiState.Loading,
             accentColor = accentRed,
             darkGrey = darkGrey,
             lightGrey = lightGrey,

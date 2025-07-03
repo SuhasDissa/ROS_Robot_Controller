@@ -1,18 +1,17 @@
 package top.suhasdissa.robotcontroller.util
 
-import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import top.suhasdissa.robotcontroller.data.AngleData
 import top.suhasdissa.robotcontroller.data.CoordinateData
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
+import top.suhasdissa.robotcontroller.data.ros.Message
+import top.suhasdissa.robotcontroller.data.ros.Topic
+import top.suhasdissa.robotcontroller.rosutil.ROSBridgeClient
+import top.suhasdissa.robotcontroller.rosutil.ROSBridgeManager
 
 data class RobotStatus(val isConnected: Boolean, val batteryLevel: Int, val currentTask: String)
 
@@ -27,6 +26,7 @@ interface RemoteController {
 class RemoteControllerImpl(rosBridgeManager: ROSBridgeManager) : RemoteController {
 
     val receivedMessages = rosBridgeManager.receivedMessages
+    val gson = Gson()
 
     init {
         rosBridgeManager.connectToROS(listOf(
@@ -35,7 +35,7 @@ class RemoteControllerImpl(rosBridgeManager: ROSBridgeManager) : RemoteControlle
 
         CoroutineScope(Dispatchers.IO).launch {
             receivedMessages.collect { message ->
-                val msg = message.message.deserializeMessage<Message.Pose2DMessage>(message.message.msg)
+                val msg = message.message.deserializeMessage<Message.Pose2DMessage>(message.message.msg,gson)
 
                 if (msg != null) {
                     val data = CoordinateData(msg.x.toFloat(), msg.y.toFloat(), Math.toDegrees(msg.theta).toFloat())

@@ -1,4 +1,4 @@
-package top.suhasdissa.robotcontroller.util
+package top.suhasdissa.robotcontroller.rosutil
 
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CoroutineScope
@@ -9,16 +9,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
-data class ROSMessage(
-    val message: ROSBridgeIncomingMessage,
-    val timestamp: Long
-)
-
-data class Topic(
-    val topic: String,
-    val messageType: ROSBridgeClient.MessageType
-)
+import top.suhasdissa.robotcontroller.data.ros.Message
+import top.suhasdissa.robotcontroller.data.ros.ROSBridgeIncomingMessage
+import top.suhasdissa.robotcontroller.data.ros.ROSMessage
+import top.suhasdissa.robotcontroller.data.ros.Topic
 
 sealed class ConnectionEvent {
     object Connected : ConnectionEvent()
@@ -33,13 +27,13 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
     val connectionStatus: StateFlow<Boolean> = _connectionStatus.asStateFlow()
 
     private val _receivedMessages = MutableSharedFlow<ROSMessage>()
-    val receivedMessages: MutableSharedFlow<ROSMessage> = _receivedMessages
+    val receivedMessages: SharedFlow<ROSMessage> = _receivedMessages
 
     private val _errors = MutableSharedFlow<String>()
     val errors: SharedFlow<String> = _errors
 
     private val _connectionEvents = MutableStateFlow<ConnectionEvent>(ConnectionEvent.Disconnected)
-    val connectionEvents: SharedFlow<ConnectionEvent> = _connectionEvents
+    val connectionEvents: StateFlow<ConnectionEvent> = _connectionEvents
 
     var topics = listOf<Topic>()
 

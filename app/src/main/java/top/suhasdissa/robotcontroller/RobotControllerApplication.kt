@@ -1,7 +1,7 @@
 package top.suhasdissa.robotcontroller
 
 import android.app.Application
-import top.suhasdissa.robotcontroller.util.ROSBridgeManager
+import top.suhasdissa.robotcontroller.rosutil.ROSBridgeManager
 import top.suhasdissa.robotcontroller.util.RemoteController
 import top.suhasdissa.robotcontroller.util.RemoteControllerImpl
 
