@@ -724,7 +724,7 @@ fun EnhancedMessageItem(
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = message.message.msg.asString,
+                    text = message.message.msg.toString(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White,
                     lineHeight = 18.sp
