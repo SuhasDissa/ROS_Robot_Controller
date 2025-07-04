@@ -7,6 +7,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
 
@@ -57,6 +58,23 @@ fun rememberPreference(key: String, defaultValue: String): MutableState<String> 
     return remember {
         mutableStatePreferenceOf(context.preferences.getString(key, null) ?: defaultValue) {
             context.preferences.edit { putString(key, it) }
+        }
+    }
+}
+
+@Composable
+fun rememberPreference(key: String, defaultValue: Offset): MutableState<Offset> {
+    val context = LocalContext.current
+    return remember {
+        mutableStatePreferenceOf(
+            Offset(
+                context.preferences.getLong(
+                    key,
+                    defaultValue.packedValue
+                )
+            )
+        ) {
+            context.preferences.edit { putLong(key, it.packedValue) }
         }
     }
 }

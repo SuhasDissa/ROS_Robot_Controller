@@ -45,6 +45,7 @@ import top.suhasdissa.robotcontroller.components.StatusDialog
 import top.suhasdissa.robotcontroller.components.StatusIndicators
 import top.suhasdissa.robotcontroller.components.StreamSection
 import top.suhasdissa.robotcontroller.components.ToggleView
+import top.suhasdissa.robotcontroller.util.rememberPreference
 import top.suhasdissa.robotcontroller.viewmodels.ROSConnectViewModel
 
 @Composable
@@ -137,7 +138,8 @@ fun GameInterface(modifier: Modifier = Modifier) {
         }
     }
 
-    var pipOffset by remember { mutableStateOf(Offset(0f, 0f)) }
+    var savedOffset by rememberPreference("pip_offset", Offset(0f, 0f))
+    var pipOffset by remember { mutableStateOf(savedOffset) }
     var isDragging by remember { mutableStateOf(false) }
     val pipWidth = 200.dp
     val pipHeight = 150.dp
@@ -157,6 +159,7 @@ fun GameInterface(modifier: Modifier = Modifier) {
                     },
                     onDragEnd = {
                         isDragging = false
+                        savedOffset = pipOffset
                     }
                 ) { _, dragAmount ->
                     pipOffset = Offset(
