@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep WebSocket classes
+-keep class org.java_websocket.** { *; }
+
+# Keep Gson classes
+-keep class com.google.gson.** { *; }
+-keep class your.package.data.models.** { *; }
+
+# Keep Media3 classes
+-keep class androidx.media3.** { *; }
