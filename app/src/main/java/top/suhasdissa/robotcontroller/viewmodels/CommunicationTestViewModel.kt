@@ -78,7 +78,7 @@ class CommunicationTestViewModel(private val rosBridgeManager: ROSBridgeManager)
         _uiState.value = CommunicationUiState.Loading(statusMessage = "Connecting...")
         rosBridgeManager.connect(
             listOf(
-                Topic("/rpi", ROSBridgeClient.MessageType.STRING),
+                Topic("/robot_pose", ROSBridgeClient.MessageType.GEOMETRY_POSE2D),
                 Topic("/rpi2", ROSBridgeClient.MessageType.STRING)
             )
         )
@@ -90,7 +90,7 @@ class CommunicationTestViewModel(private val rosBridgeManager: ROSBridgeManager)
             _uiState.value = currentState.copy(lastSentMessage = message)
         }
         rosBridgeManager.publishMessage(
-            Topic("/android", ROSBridgeClient.MessageType.STRING),
+            Topic("/remote_keys", ROSBridgeClient.MessageType.STRING),
             Message.StringMessage(message)
         )
     }

@@ -6,10 +6,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import top.suhasdissa.robotcontroller.components.DPadDirection
 import top.suhasdissa.robotcontroller.data.AngleData
 import top.suhasdissa.robotcontroller.data.CoordinateData
 import top.suhasdissa.robotcontroller.data.ros.Message
 import top.suhasdissa.robotcontroller.data.ros.Topic
+import top.suhasdissa.robotcontroller.rosutil.ROSBridgeClient
 import top.suhasdissa.robotcontroller.rosutil.ROSBridgeManager
 
 interface RemoteController {
@@ -18,6 +20,8 @@ interface RemoteController {
     suspend fun publishCoordinates(data: CoordinateData)
     suspend fun publishAngles(data: AngleData)
     suspend fun publishJoystickData(x: Float, y: Float)
+    fun publishDpad(direction: DPadDirection)
+
     val robotPosition: SharedFlow<CoordinateData?>
 }
 
@@ -33,6 +37,8 @@ class RemoteControllerImpl(val rosBridgeManager: ROSBridgeManager) : RemoteContr
                     message.message.msg,
                     gson
                 )
+
+                println(msg)
 
                 if (msg != null) {
                     val data = CoordinateData(
@@ -67,6 +73,11 @@ class RemoteControllerImpl(val rosBridgeManager: ROSBridgeManager) : RemoteContr
     override suspend fun publishJoystickData(x: Float, y: Float) {
         joystickX = x
         joystickY = -y
+    }
+
+    override fun publishDpad(direction: DPadDirection) {
+        val topic = Topic("/remote_keys", ROSBridgeClient.MessageType.STRING)
+        rosBridgeManager.publishMessage(topic, Message.StringMessage(direction.key))
     }
 
     private val _robotPosition = MutableSharedFlow<CoordinateData>()

@@ -36,9 +36,11 @@ fun ControlsSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                JoystickControl(
-                    darkGrey = darkGrey, lightGrey = lightGrey
-                )
+//                JoystickControl(
+//                    darkGrey = darkGrey, lightGrey = lightGrey
+//                )
+
+                DPadControl(darkGrey,lightGrey)
 
                 RotaryAngleControl(
                     darkGrey = darkGrey, lightGrey = lightGrey, accentGreen = accentGreen
@@ -61,9 +63,10 @@ fun ControlsSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            JoystickControl(
-                darkGrey = darkGrey, lightGrey = lightGrey
-            )
+//            JoystickControl(
+//                darkGrey = darkGrey, lightGrey = lightGrey
+//            )
+            DPadControl(darkGrey,lightGrey)
 
             RotaryAngleControl(
                 darkGrey = darkGrey, lightGrey = lightGrey, accentGreen = accentGreen

@@ -1,5 +1,6 @@
 package top.suhasdissa.robotcontroller.rosutil
 
+import android.util.Log
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,6 +56,7 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
     }
 
     fun publishMessage(topic: Topic, message: Message) {
+        if (!_connectionStatus.value) return
         rosClient.publish(topic, message)
     }
 
@@ -97,6 +99,7 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
     }
 
     override fun onMessageReceived(message: ROSBridgeIncomingMessage) {
+        println(message)
         CoroutineScope(Dispatchers.IO).launch {
             val timestamp = System.currentTimeMillis()
             _receivedMessages.emit(ROSMessage(message, timestamp))
@@ -112,6 +115,7 @@ class ROSBridgeManager private constructor(serverUri: String) : ROSBridgeClient.
     }
 
     override fun onError(error: String) {
+        Log.d("ROS_BRIDGE_ERROR", error)
         CoroutineScope(Dispatchers.IO).launch {
             _connectionStatus.value = false
             _connectionEvents.emit(ConnectionEvent.Error(error))
