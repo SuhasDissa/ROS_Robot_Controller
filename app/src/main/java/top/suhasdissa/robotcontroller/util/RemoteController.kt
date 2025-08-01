@@ -1,5 +1,8 @@
 package top.suhasdissa.robotcontroller.util
 
+import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -9,7 +12,9 @@ import kotlinx.coroutines.launch
 import top.suhasdissa.robotcontroller.components.DPadDirection
 import top.suhasdissa.robotcontroller.data.AngleData
 import top.suhasdissa.robotcontroller.data.CoordinateData
+import top.suhasdissa.robotcontroller.data.Doughnut
 import top.suhasdissa.robotcontroller.data.ros.Message
+import top.suhasdissa.robotcontroller.data.ros.ROSMessage
 import top.suhasdissa.robotcontroller.data.ros.Topic
 import top.suhasdissa.robotcontroller.rosutil.ROSBridgeClient
 import top.suhasdissa.robotcontroller.rosutil.ROSBridgeManager
@@ -23,11 +28,16 @@ interface RemoteController {
     fun publishDpad(direction: DPadDirection)
 
     val robotPosition: SharedFlow<CoordinateData?>
+    val circleData: SharedFlow<Doughnut?>
 }
 
 class RemoteControllerImpl(val rosBridgeManager: ROSBridgeManager) : RemoteController {
 
     val receivedMessages = rosBridgeManager.receivedMessages
+
+
+    private val _circleData = MutableSharedFlow<Doughnut?>()
+    override val circleData: SharedFlow<Doughnut?> = _circleData
     val gson = Gson()
 
     init {
@@ -62,6 +72,7 @@ class RemoteControllerImpl(val rosBridgeManager: ROSBridgeManager) : RemoteContr
 
     override suspend fun publishCoordinates(data: CoordinateData) {
         _robotPosition.emit(data)
+        _circleData.emit(Doughnut(data.x to data.y,2f, 3f, Color.Green))
     }
 
     override suspend fun publishAngles(data: AngleData) {
